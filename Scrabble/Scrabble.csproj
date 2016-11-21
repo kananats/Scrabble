@@ -60,7 +60,8 @@
   <ItemGroup>
     <Compile Include="Bag.cs" />
     <Compile Include="Board.cs" />
-    <Compile Include="Bonus.cs" />
+    <Compile Include="Anchor.cs" />
+    <Compile Include="Move.cs" />
     <Compile Include="Debug.cs" />
     <Compile Include="Dictionary.cs" />
     <Compile Include="ExtensionMethod.cs" />

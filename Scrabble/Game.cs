@@ -37,24 +37,23 @@ namespace Scrabble
             playerQueue = new Queue<Player>();
         }
 
-        public void Initialize()
+        public void Reset()
         {
-            bag.Initialize();
-
-            board.Initialize();
+            bag.Reset();
+            board.Reset();
 
             playerQueue.Clear();
 
-            Player player1 = new Player("A");
-            player1.Initialize(100, 7);
+            Player player1 = new Player("Player A");
+            player1.Reset(100);
 
-            Player player2 = new Player("B");
-            player2.Initialize(100, 7);
+            Player player2 = new Player("Player B");
+            player2.Reset(100);
 
             playerQueue.Enqueue(player1);
             playerQueue.Enqueue(player2);
 
-            Debug.Log(1, "Game Initialized");
+            Debug.Log(1, "Game Reset");
         }
 
         public void Step()
@@ -67,9 +66,9 @@ namespace Scrabble
             player.Step();
         }
 
-        public void Finalize()
+        public void Finish()
         {
-            Debug.Log("Game Finalized");
+            Debug.Log("Game Finished");
 
             foreach (Player player in playerQueue)
                 Debug.Log(1, "Player " + player.name + " gets " + player.point + " score");

@@ -7,12 +7,12 @@ namespace Common
         private static int LOG_LEVEL = 10;
         private static bool STEP = true;
 
-        public static void Log(string message)
+        public static void Log(string message = "")
         {
             Log(0, message);
         }
 
-        public static void Log(int level, string message)
+        public static void Log(int level, string message = "")
         {
             if (level > LOG_LEVEL)
                 return;

@@ -54,6 +54,7 @@ namespace Scrabble
         public Dictionary()
         {
             root = new Node();
+            root.valid = true;
 
             foreach (string line in File.ReadLines(@"..\..\Resources\dictionary.txt"))
             {
@@ -74,18 +75,18 @@ namespace Scrabble
             }
         }
 
-        public bool Search(string word)
+        public bool Search(string alphabets)
         {
             Node node = root;
 
-            for (int i = 0; i < word.Length; i++)
+            for (int i = 0; i < alphabets.Length; i++)
             {
-                string alphabet = word[i].ToString();
+                string alphabet = alphabets[i].ToString();
 
                 if (node.next[alphabet] == null)
                     return false;
 
-                else if (i == word.Length - 1)
+                else if (i == alphabets.Length - 1)
                     return node.next[alphabet].valid;
 
                 else

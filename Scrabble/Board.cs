@@ -1,11 +1,96 @@
-﻿using System;
+﻿using Common;
+using System;
 using System.Collections.Generic;
 using System.IO;
 
 namespace Scrabble
 {
-    struct Position
+    class Bonus : IComparable<Bonus>
     {
+        public enum Type
+        {
+            Letter,
+            Word
+        }
+
+        public int multiplier
+        {
+            get;
+            private set;
+        }
+
+        public Type type
+        {
+            get;
+            private set;
+        }
+
+        public Bonus(Type type, int multiplier = 1)
+        {
+            this.type = type;
+            this.multiplier = multiplier;
+        }
+
+        public int CompareTo(Bonus other)
+        {
+            return type.CompareTo(other.type) == 0 ? (multiplier.CompareTo(other.multiplier)) : type.CompareTo(other.type);
+        }
+
+        public int GetMultiplier(Type type)
+        {
+            if (this.type == type)
+                return multiplier;
+
+            return 1;
+        }
+    }
+
+    class PreviousSlot
+    {
+        public Slot this[Direction direction]
+        {
+            get
+            {
+                return direction == Direction.Horizontal ? left : top;
+            }
+        }
+
+        public Slot left;
+        public Slot top;
+
+        public PreviousSlot()
+        {
+            left = top = null;
+        }
+    }
+
+    class NextSlot
+    {
+        public Slot this[Direction direction]
+        {
+            get
+            {
+                return direction == Direction.Horizontal ? right : bottom;
+            }
+        }
+
+        public Slot right;
+        public Slot bottom;
+
+        public NextSlot()
+        {
+            right = bottom = null;
+        }
+    }
+
+    class Slot
+    {
+        public string alphabet
+        {
+            get;
+            set;
+        }
+
         public int row
         {
             get;
@@ -18,67 +103,153 @@ namespace Scrabble
             private set;
         }
 
-        public Position(int row, int column)
-        {
-            this.row = row;
-            this.column = column;
-        }
-
-        public static Position operator +(Position p1, Position p2)
-        {
-            return new Position(p1.row + p2.row, p1.column + p2.column);
-        }
-    }
-
-    class Slot
-    {
-        public Tile tile
-        {
-            get;
-            private set;
-        }
-
-        public Position position
-        {
-            get;
-            private set;
-        }
-
         public Bonus bonus
         {
             get;
             private set;
         }
 
-        public Slot(Position position, Bonus bonus)
+        public PreviousSlot previous;
+        public NextSlot next;
+
+        public Slot top
         {
-            this.position = position;
+            get
+            {
+                return previous.top;
+            }
+
+            set
+            {
+                previous.top = value;
+            }
+        }
+        public Slot left
+        {
+            get
+            {
+                return previous.left;
+            }
+
+            set
+            {
+                previous.left = value;
+            }
+        }
+        public Slot bottom
+        {
+            get
+            {
+                return next.bottom;
+            }
+            set
+            {
+                next.bottom = value;
+            }
+        }
+        public Slot right
+        {
+            get
+            {
+                return next.right;
+            }
+            set
+            {
+                next.right = value;
+            }
+        }
+
+        public Slot(int row, int column, Bonus bonus)
+        {
+            this.row = row;
+            this.column = column;
             this.bonus = bonus;
+
+            previous = new PreviousSlot();
+            next = new NextSlot();
         }
 
-        public void Initialize()
+        public void Reset()
         {
-            tile = null;
+            alphabet = null;
         }
 
-        public void SetTile(Tile tile)
+        public override string ToString()
         {
-            this.tile = tile;
+            return "(" + row + ", " + column + ")";
+        }
+    }
+
+    class Slots
+    {
+        public Slot[,] slots;
+
+        public virtual Slot this[int row, int column]
+        {
+            get
+            {
+                if (row < 0 || row >= this.row || column < 0 || column >= this.column)
+                    return null;
+
+                return slots[row, column];
+            }
+
+            set
+            {
+                slots[row, column] = value;
+            }
+        }
+
+        public Slots(int row, int column)
+        {
+            slots = new Slot[row, column];
+        }
+
+        public int row
+        {
+            get
+            {
+                return slots.GetLength(0);
+            }
+        }
+
+        public int column
+        {
+            get
+            {
+                return slots.GetLength(1);
+            }
         }
     }
 
     class Board
     {
-        public List<Slot> activeSlots
+        public List<Slot> slotList
         {
             get;
             private set;
         }
 
-        public Slot[,] slots
+        public Slots slots
         {
             get;
             private set;
+        }
+
+        public int row
+        {
+            get
+            {
+                return slots.row;
+            }
+        }
+
+        public int column
+        {
+            get
+            {
+                return slots.column;
+            }
         }
 
         public Board()
@@ -101,7 +272,7 @@ namespace Scrabble
                 row++;
             }
 
-            slots = new Slot[row, column];
+            slots = new Slots(row, column);
 
             int i = 0;
             foreach (string line in lines)
@@ -109,60 +280,68 @@ namespace Scrabble
                 string[] tokens = line.Split(null);
                 for (int j = 0; j < tokens.Length; j++)
                 {
-                    Position position = new Position(i, j);
+                    Bonus.Type type = tokens[j].Length == 2 && tokens[j][1] == 'W' ? Bonus.Type.Word : Bonus.Type.Letter;
+                    int multiplier = tokens[j].Length == 2 ? int.Parse(tokens[j][0].ToString()) : 1;
 
-                    Bonus bonus;
-                    int token = int.Parse(tokens[j]);
-                    switch (token)
-                    {
-                        case 0:
-                            bonus = Bonus.None;
-                            break;
+                    Bonus bonus = new Bonus(type, multiplier);
 
-                        case 1:
-                            bonus = Bonus.DoubleLetter;
-                            break;
-
-                        case 2:
-                            bonus = Bonus.TripleLetter;
-                            break;
-
-                        case 3:
-                            bonus = Bonus.DoubleWord;
-                            break;
-
-                        case 4:
-                            bonus = Bonus.TripleWord;
-                            break;
-
-                        default:
-                            throw new Exception("Invalid input string");
-                    }
-
-                    slots[i, j] = new Slot(position, bonus);
+                    slots[i, j] = new Slot(i, j, bonus);
                 }
 
                 i++;
             }
 
-            activeSlots = new List<Slot>();
+            for (i = 0; i < row; i++)
+            {
+                for (int j = 0; j < column; j++)
+                {
+                    if (i > 0) slots[i, j].top = slots[i - 1, j];
+                    if (j > 0) slots[i, j].left = slots[i, j - 1];
+                    if (i < row - 1) slots[i, j].bottom = slots[i + 1, j];
+                    if (j < column - 1) slots[i, j].right = slots[i, j + 1];
+                }
+            }
+
+            slotList = new List<Slot>();
         }
 
-        public void Initialize()
+        public void Reset()
         {
-            for (int i = 0; i < slots.GetLength(0); i++)
-                for (int j = 0; j < slots.GetLength(1); j++)
-                    slots[i, j].Initialize();
+            for (int i = 0; i < slots.row; i++)
+                for (int j = 0; j < slots.column; j++)
+                    slots[i, j].Reset();
 
-            activeSlots.Clear();
+            slotList.Clear();
+
+            Debug.Log(2, "Board Reset");
         }
 
-        public void Place(Tile tile, Position position)
+        public void Place(Slot slot, string alphabet)
         {
-            Slot slot = slots[position.row, position.column];
+            slot.alphabet = alphabet;
 
-            slot.SetTile(tile);
-            activeSlots.Add(slot);
+            slotList.Add(slot);
+        }
+
+        public override string ToString()
+        {
+            string s = "  ";
+
+            for (int j = 0; j < slots.column; j++)
+                s = s + j + (j < 10 ? " " : "");
+
+            s = s + "\n";
+
+            for (int i = 0; i < slots.row; i++)
+            {
+                s = s + i + (i < 10 ? " " : "");
+                for (int j = 0; j < slots.column; j++)
+                    s = s + (slots[i, j].alphabet == null ? "-" : slots[i, j].alphabet) + " ";
+
+                s = s + "\n";
+            }
+
+            return s;
         }
     }
 }

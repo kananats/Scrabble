@@ -6,6 +6,42 @@ namespace Scrabble
 {
     static class ExtensionMethod
     {
+        public static Direction Perpendicular(this Direction direction)
+        {
+            return direction == Direction.Horizontal ? Direction.Vertical : Direction.Horizontal;
+        }
+
+        public static void AddIfNotExist<T>(this List<T> list, T item)
+        {
+            if (list.Exists(x => x.Equals(item)))
+                return;
+
+            list.Add(item);
+        }
+
+        public static string Eliminate(this string s, string alphabet)
+        {
+            int index = s.IndexOf(alphabet);
+            if (index < 0)
+                return s;
+
+            string first = s.Substring(0, index);
+            string last = s.Substring(index + 1);
+
+            return first + last;
+        }
+
+        public static string Swap(this string s, int i, int j)
+        {
+            if (i == j)
+                return s;
+
+            if (i > j)
+                return Swap(s, j, i);
+
+            return s.Substring(0, i) + s[j] + s.Substring(i + 1, j - i - 1) + s[i] + s.Substring(j + 1);
+        }
+
         public static void Shuffle<T>(this IList<T> list)
         {
             int n = list.Count;
@@ -28,6 +64,7 @@ namespace Scrabble
 
         public static int ToIntIndex(this string s)
         {
+            s = s.ToLower();
             switch (s)
             {
                 case "a":
@@ -87,5 +124,4 @@ namespace Scrabble
             }
         }
     }
-
 }

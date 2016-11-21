@@ -8,10 +8,15 @@ namespace Scrabble
         static void Main(string[] args)
         {
             Game game = new Game();
+            game.Reset();
 
-            game.Initialize();
+            //hack space
+
+
+
+            //end of hack space
+
             game.Step();
-
             Debug.Log("Press any key to exit");
             Console.ReadKey();
         }
