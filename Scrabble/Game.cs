@@ -1,5 +1,6 @@
 ﻿using Common;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Scrabble
 {
@@ -44,22 +45,18 @@ namespace Scrabble
 
             playerQueue.Clear();
 
-            Player player1 = new Player("Player A");
+            Player player1 = new Player("A");
             player1.Reset(100);
 
-            Player player2 = new Player("Player B");
+            Player player2 = new Player("B");
             player2.Reset(100);
 
             playerQueue.Enqueue(player1);
             playerQueue.Enqueue(player2);
-
-            Debug.Log(1, "Game Reset");
         }
 
         public void Step()
         {
-            Debug.Step();
-
             Player player = playerQueue.Dequeue();
             playerQueue.Enqueue(player);
 
@@ -68,10 +65,23 @@ namespace Scrabble
 
         public void Finish()
         {
-            Debug.Log("Game Finished");
+            List<Player> playerList = new List<Player>(playerQueue);
+            playerList.ForEach(x => x.Reduce());
 
-            foreach (Player player in playerQueue)
-                Debug.Log(1, "Player " + player.name + " gets " + player.point + " score");
+            int point = playerList.Max(x => x.point);
+
+            string s = "";
+            playerList.FindAll(x => x.point == point).ForEach(x =>
+            {
+                s = s + x.name + "\t";
+            });
+
+            Debug.Log(s + "[Win]" + "\t" + point, 0);
+
+            Debug.Step(1);
+            Debug.Log(0);
+            Reset();
+            Step();
         }
     }
 }

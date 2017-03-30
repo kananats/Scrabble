@@ -312,8 +312,6 @@ namespace Scrabble
                     slots[i, j].Reset();
 
             slotList.Clear();
-
-            Debug.Log(2, "Board Reset");
         }
 
         public void Place(Slot slot, string alphabet)
@@ -325,7 +323,7 @@ namespace Scrabble
 
         public override string ToString()
         {
-            string s = "  ";
+            string s = "[Board]\n  ";
 
             for (int j = 0; j < slots.column; j++)
                 s = s + j + (j < 10 ? " " : "");

@@ -1,23 +1,57 @@
 ﻿
-using Common;
 using System;
-using System.Collections.Generic;
 
 namespace Scrabble
 {
     class Move : IComparable<Move>
     {
-        public Slot slot;
-        public Direction direction;
+        public Slot slot
+        {
+            get;
+            private set;
+        }
 
-        public string alphabets;
-        public string newAlphabets;
-        public string nextAlphabets;
+        public Direction direction
+        {
+            get;
+            private set;
+        }
 
-        public int point;
-        public float evaluate;
+        public string alphabets
+        {
+            get;
+            private set;
+        }
 
-        public string formattedAlphabets;
+        public string newAlphabets
+        {
+            get;
+            private set;
+        }
+
+        public string nextAlphabets
+        {
+            get;
+            private set;
+        }
+
+        public int point
+        {
+            get;
+            private set;
+        }
+
+        public float evaluate
+        {
+            get;
+            private set;
+        }
+
+        public string formattedAlphabets
+        {
+            get;
+            private set;
+        }
 
         public Move(Slot slot, Direction direction, string alphabets, string newAlphabets, string nextAlphabets)
         {
@@ -37,7 +71,12 @@ namespace Scrabble
         public void Evaluate()
         {
             point = GetMainPoint() + GetBingoPoint();
-            evaluate = point + GetLeavePoint();
+            evaluate = point + GetLeavePoint() + GetBoardPoint();
+        }
+
+        private float GetBoardPoint()
+        {
+            return 0.0f;
         }
 
         private float GetLeavePoint()
@@ -61,14 +100,12 @@ namespace Scrabble
             if (alphabets == "")
                 return primaryPoint * multiplier + secondaryPoint;
 
-            Dictionary<string, int> points = Game.instance.bag.points;
-
             string alphabet = alphabets[0].ToString();
 
             if (newAlphabets[0].ToString() == "1")
-                return GetMainPoint(primaryPoint + points[alphabet] * slot.bonus.GetMultiplier(Bonus.Type.Letter), secondaryPoint + GetPerpendicularPoint(alphabet, slot), multiplier * slot.bonus.GetMultiplier(Bonus.Type.Word), slot.next[direction], alphabets.Substring(1), newAlphabets.Substring(1));
+                return GetMainPoint(primaryPoint + Constant.points[alphabet] * slot.bonus.GetMultiplier(Bonus.Type.Letter), secondaryPoint + GetPerpendicularPoint(alphabet, slot), multiplier * slot.bonus.GetMultiplier(Bonus.Type.Word), slot.next[direction], alphabets.Substring(1), newAlphabets.Substring(1));
 
-            return GetMainPoint(primaryPoint + points[alphabet], secondaryPoint, multiplier, slot.next[direction], alphabets.Substring(1), newAlphabets.Substring(1));
+            return GetMainPoint(primaryPoint + Constant.points[alphabet], secondaryPoint, multiplier, slot.next[direction], alphabets.Substring(1), newAlphabets.Substring(1));
         }
 
         private int GetPerpendicularPoint(string alphabet, Slot slot)
@@ -101,7 +138,7 @@ namespace Scrabble
                     return point;
                 }
 
-                point = point + Game.instance.bag.points[tempSlot.alphabet];
+                point = point + Constant.points[tempSlot.alphabet];
                 tempSlot = tempSlot.next[direction.Perpendicular()];
             }
         }
@@ -113,7 +150,7 @@ namespace Scrabble
 
         public override string ToString()
         {
-            return slot.row + ", " + slot.column + "\t" + direction + "\t" + formattedAlphabets + "\t" + point + "(" + evaluate + ")";
+            return slot.row + ", " + slot.column + "\t" + direction + "\t" + formattedAlphabets + "\t" + point + "\t" + evaluate;
         }
 
         public override bool Equals(object obj)

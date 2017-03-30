@@ -1,4 +1,5 @@
 ﻿using Common;
+using System;
 using System.Collections.Generic;
 
 namespace Scrabble
@@ -29,12 +30,31 @@ namespace Scrabble
 
         private string alphabets;
 
+        private List<Anchor> anchorList;
+        private List<Move> moveList;
+
+        private Game game;
+        private Bag bag;
+        private Board board;
+        private Slots slots;
+        private List<Slot> slotList;
+        private Node root;
+
         public Player(string name)
         {
             this.name = name;
 
             anchorList = new List<Anchor>();
             moveList = new List<Move>();
+
+            game = Game.instance;
+
+            bag = game.bag;
+            board = game.board;
+
+            slots = board.slots;
+            slotList = board.slotList;
+            root = game.dictionary.root;
         }
 
         public void Reset(int level)
@@ -55,36 +75,49 @@ namespace Scrabble
             CheckEndGame();
         }
 
+        public void Reduce()
+        {
+            int point = this.point;
+
+            int diff = 0;
+            foreach (char alphabet in alphabets)
+                diff -= Constant.points[alphabet.ToString()];
+
+            if (diff == 0)
+                return;
+
+            this.point = point + diff;
+            Debug.Log(name + "\t[Reduce]\t" + alphabets + "\t" + diff + "\t" + point + " -> " + this.point, 1);
+        }
+
         private void Draw()
         {
-            string s = name + " draws ";
+            string alphabets = this.alphabets;
+            string diff = "";
 
-            while (alphabets.Length < SIZE)
+            for (int i = 0; i < SIZE - alphabets.Length; i++)
             {
-                string alphabet = Game.instance.bag.GetAlphabet();
+                string alphabet = bag.nextAlphabet;
 
                 if (alphabet == null)
                     break;
 
-                s = s + alphabet + (alphabets.Length == SIZE - 1 ? "" : ", ");
-
-                alphabets = alphabets + alphabet;
+                diff = diff + alphabet;
             }
 
-            Debug.Log(s);
+            this.alphabets = alphabets + diff;
+
+            Debug.Log(name + "\t[Draw]\t" + diff + "\t[" + alphabets + "] -> [" + this.alphabets + "]", 1);
         }
 
         private void CheckEndGame()
         {
             if (alphabets.Length == 0)
-                Game.instance.Finish();
+                game.Finish();
 
             else
-                Game.instance.Step();
+                game.Step();
         }
-
-        List<Anchor> anchorList;
-        List<Move> moveList;
 
         private void ResetPlay()
         {
@@ -94,12 +127,9 @@ namespace Scrabble
 
         private void AddDefaultAnchor()
         {
-            Board board = Game.instance.board;
-
-            if (board.slotList.Count > 0)
+            if (slotList.Count > 0)
                 return;
 
-            Slots slots = board.slots;
             Slot slot = slots[slots.row / 2, slots.column / 2];
 
             if (slot.alphabet != null)
@@ -107,277 +137,167 @@ namespace Scrabble
 
             foreach (char alphabet in alphabets)
             {
-                anchorList.AddIfNotExist(new Anchor(slot, alphabet.ToString(), "1", Direction.Horizontal));
-                anchorList.AddIfNotExist(new Anchor(slot, alphabet.ToString(), "1", Direction.Vertical));
+                string allAlphabets = alphabet.ToString() == Constant.blankAlphabet ? Constant.allAlphabets : alphabet.ToString();
+
+                foreach (char allAlphabet in allAlphabets)
+                    foreach (Direction direction in Enum.GetValues(typeof(Direction)))
+                        anchorList.AddIfNotExist(new Anchor(slot, allAlphabet.ToString(), "1", direction));
             }
         }
 
         // PAN -> (P)↓AN
         private void AddExistAnchor()
         {
-            Slots slots = Game.instance.board.slots;
-            List<Slot> slotList = Game.instance.board.slotList;
+            foreach (Slot slot in slotList)
+                foreach (Direction direction in Enum.GetValues(typeof(Direction)))
+                    if (slot.previous[direction] == null || slot.previous[direction].alphabet == null)
+                        anchorList.AddIfNotExist(new Anchor(slot, slot.alphabet, "0", direction));
+        }
 
+        // PAN -> S↓PAN
+        private void AddHeadAnchor()
+        {
+            foreach (Slot slot in slotList)
+                foreach (Direction direction in Enum.GetValues(typeof(Direction)))
+                    if (slot.previous[direction] != null && slot.previous[direction].alphabet == null && (slot.previous[direction].previous[direction] == null || slot.previous[direction].previous[direction].alphabet == null))
+                        foreach (char alphabet in alphabets)
+                        {
+                            Node node;
+                            Slot nextSlot;
+                            string allAlphabets = alphabet.ToString() == Constant.blankAlphabet ? Constant.allAlphabets : alphabet.ToString();
+                            foreach (char allAlphabet in allAlphabets)
+                            {
+                                node = root.next[allAlphabet.ToString()];
+                                if (node == null)
+                                    continue;
+
+                                nextSlot = slot;
+                                while (true)
+                                {
+                                    node = node.next[nextSlot.alphabet.ToString()];
+                                    nextSlot = nextSlot.next[direction];
+
+                                    if (node == null)
+                                        break;
+
+                                    if (nextSlot == null || nextSlot.alphabet == null)
+                                    {
+                                        if (node.valid && (slot.previous[direction].previous[direction.Perpendicular()] == null || slot.previous[direction].previous[direction.Perpendicular()].alphabet == null))
+                                            anchorList.AddIfNotExist(new Anchor(slot.previous[direction], allAlphabet.ToString(), "1", direction.Perpendicular()));
+
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+        }
+
+        // PAN -> PANS↓
+        private void AddTailAnchor()
+        {
             foreach (Slot slot in slotList)
             {
-                // Horizontal
-                if (slot.left == null || slot.left.alphabet == null)
-                    anchorList.AddIfNotExist(new Anchor(slot, slot.alphabet, "0", Direction.Horizontal));
+                Slot nextSlot;
+                Node node;
 
-                // Vertical
-                if (slot.top == null || slot.top.alphabet == null)
-                    anchorList.AddIfNotExist(new Anchor(slot, slot.alphabet, "0", Direction.Vertical));
+                foreach (Direction direction in Enum.GetValues(typeof(Direction)))
+                    if (slot.previous[direction] == null || slot.previous[direction].alphabet == null)
+                    {
+                        nextSlot = slot;
+                        node = root;
+                        while (true)
+                        {
+                            node = node.next[nextSlot.alphabet];
+                            nextSlot = nextSlot.next[direction];
+
+                            if (nextSlot == null)
+                                break;
+
+                            if (nextSlot.alphabet == null)
+                            {
+                                foreach (char alphabet in alphabets)
+                                {
+                                    string allAlphabets = alphabet.ToString() == Constant.blankAlphabet ? Constant.allAlphabets : alphabet.ToString();
+
+                                    foreach (char allAlphabet in allAlphabets)
+                                        if (node.next[allAlphabet.ToString()] != null && node.next[allAlphabet.ToString()].valid && (nextSlot.previous[direction.Perpendicular()] == null || nextSlot.previous[direction.Perpendicular()].alphabet == null) && (nextSlot.next[direction] == null || nextSlot.next[direction].alphabet == null))
+                                            anchorList.AddIfNotExist(new Anchor(nextSlot, allAlphabet.ToString(), "1", direction.Perpendicular()));
+                                }
+
+                                break;
+                            }
+                        }
+                    }
             }
         }
 
         // P N -> PA↓N
         private void AddCenterAnchor()
         {
-            Slots slots = Game.instance.board.slots;
-            List<Slot> slotList = Game.instance.board.slotList;
-
             foreach (Slot slot in slotList)
-            {
-                // Horizontal -> Vertical
-                if (slot.left != null && slot.left.alphabet == null && (slot.left.left != null && slot.left.left.alphabet != null))
-                {
-                    Node startNode = Game.instance.dictionary.root;
-                    Slot startSlot = slot.left.left;
-
-                    while (startSlot.left != null && startSlot.left.alphabet != null)
-                        startSlot = startSlot.left;
-
-                    while (startSlot != slot.left)
+                foreach (Direction direction in Enum.GetValues(typeof(Direction)))
+                    if (slot.previous[direction] != null && slot.previous[direction].alphabet == null && (slot.previous[direction].previous[direction] != null && slot.previous[direction].previous[direction].alphabet != null))
                     {
-                        startNode = startNode.next[startSlot.alphabet];
-                        startSlot = startSlot.right;
-                    }
+                        Node startNode = root;
+                        Slot startSlot = slot.previous[direction].previous[direction];
 
-                    for (int i = 0; i < alphabets.Length; i++)
-                    {
-                        Node node = startNode.next[alphabets[i].ToString()];
-                        Slot nextSlot = startSlot;
+                        while (startSlot.previous[direction] != null && startSlot.previous[direction].alphabet != null)
+                            startSlot = startSlot.previous[direction];
 
-                        if (node == null)
-                            continue;
-
-                        nextSlot = slot;
-                        while (true)
+                        while (startSlot != slot.previous[direction])
                         {
-                            node = node.next[nextSlot.alphabet.ToString()];
-                            nextSlot = nextSlot.right;
+                            startNode = startNode.next[startSlot.alphabet];
+                            startSlot = startSlot.next[direction];
+                        }
 
-                            if (node == null)
-                                break;
+                        foreach (char alphabet in alphabets)
+                        {
+                            string allAlphabets = alphabet.ToString() == Constant.blankAlphabet ? Constant.allAlphabets : alphabet.ToString();
 
-                            if (nextSlot == null || nextSlot.alphabet == null)
+                            foreach (char allAlphabet in allAlphabets)
                             {
-                                if (node.valid && (slot.left.top == null || slot.left.top.alphabet == null))
-                                    anchorList.AddIfNotExist(new Anchor(slot.left, alphabets[i].ToString(), "1", Direction.Vertical));
+                                Node node = startNode.next[allAlphabet.ToString()];
+                                Slot nextSlot = startSlot;
 
-                                break;
+                                if (node == null)
+                                    continue;
+
+                                nextSlot = slot;
+                                while (true)
+                                {
+                                    node = node.next[nextSlot.alphabet.ToString()];
+                                    nextSlot = nextSlot.next[direction];
+
+                                    if (node == null)
+                                        break;
+
+                                    if (nextSlot == null || nextSlot.alphabet == null)
+                                    {
+                                        if (node.valid && (slot.previous[direction].previous[direction.Perpendicular()] == null || slot.previous[direction].previous[direction.Perpendicular()].alphabet == null))
+                                            anchorList.AddIfNotExist(new Anchor(slot.previous[direction], allAlphabet.ToString(), "1", direction.Perpendicular()));
+
+                                        break;
+                                    }
+                                }
                             }
                         }
                     }
-                }
-
-                // Vertical -> Horizontal
-                if (slot.top != null && slot.top.alphabet == null && (slot.top.top != null && slot.top.top.alphabet != null))
-                {
-                    Node startNode = Game.instance.dictionary.root;
-                    Slot startSlot = slot.top.top;
-
-                    while (startSlot.top != null && startSlot.top.alphabet != null)
-                        startSlot = startSlot.top;
-
-                    while (startSlot != slot.top)
-                    {
-                        startNode = startNode.next[startSlot.alphabet];
-                        startSlot = startSlot.bottom;
-                    }
-
-                    for (int i = 0; i < alphabets.Length; i++)
-                    {
-                        Node node = startNode.next[alphabets[i].ToString()];
-                        Slot nextSlot = startSlot;
-
-                        if (node == null)
-                            continue;
-
-                        nextSlot = slot;
-                        while (true)
-                        {
-                            node = node.next[nextSlot.alphabet.ToString()];
-                            nextSlot = nextSlot.bottom;
-
-                            if (node == null)
-                                break;
-
-                            if (nextSlot == null || nextSlot.alphabet == null)
-                            {
-                                if (node.valid && (slot.top.left == null || slot.top.left.alphabet == null))
-                                    anchorList.AddIfNotExist(new Anchor(slot.top, alphabets[i].ToString(), "1", Direction.Horizontal));
-
-                                break;
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        // PAN -> S↓PAN
-        private void AddHeadAnchor()
-        {
-            Slots slots = Game.instance.board.slots;
-            List<Slot> slotList = Game.instance.board.slotList;
-
-            foreach (Slot slot in slotList)
-            {
-                Node node;
-
-                // Horizontal -> Vertical
-                if (slot.left != null && slot.left.alphabet == null && (slot.left.left == null || slot.left.left.alphabet == null))
-                {
-                    Node root = Game.instance.dictionary.root;
-                    Slot nextSlot;
-
-                    for (int i = 0; i < alphabets.Length; i++)
-                    {
-                        node = root.next[alphabets[i].ToString()];
-                        if (node == null)
-                            continue;
-
-                        nextSlot = slot;
-                        while (true)
-                        {
-                            node = node.next[nextSlot.alphabet.ToString()];
-                            nextSlot = nextSlot.right;
-
-                            if (node == null)
-                                break;
-
-                            if (nextSlot == null || nextSlot.alphabet == null)
-                            {
-                                if (node.valid && (slot.left.top == null || slot.left.top.alphabet == null))
-                                    anchorList.AddIfNotExist(new Anchor(slot.left, alphabets[i].ToString(), "1", Direction.Vertical));
-
-                                break;
-                            }
-                        }
-                    }
-                }
-
-                // Vertical -> Horizontal
-                if (slot.top != null && slot.top.alphabet == null && (slot.top.top == null || slot.top.top.alphabet == null))
-                {
-                    Node root = Game.instance.dictionary.root;
-                    Slot nextSlot;
-
-                    for (int i = 0; i < alphabets.Length; i++)
-                    {
-                        node = root.next[alphabets[i].ToString()];
-                        if (node == null)
-                            continue;
-
-                        nextSlot = slot;
-                        while (true)
-                        {
-                            node = node.next[nextSlot.alphabet.ToString()];
-                            nextSlot = nextSlot.bottom;
-
-                            if (node == null)
-                                break;
-
-                            if (nextSlot == null || nextSlot.alphabet == null)
-                            {
-                                if (node.valid && (slot.top.left == null || slot.top.left.alphabet == null))
-                                    anchorList.AddIfNotExist(new Anchor(slot.top, alphabets[i].ToString(), "1", Direction.Horizontal));
-
-                                break;
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        // PAN -> PANS↓
-        private void AddTailAnchor()
-        {
-            Slots slots = Game.instance.board.slots;
-            List<Slot> slotList = Game.instance.board.slotList;
-
-            foreach (Slot slot in slotList)
-            {
-                Slot nextSlot;
-                Node node;
-
-                // Horizontal -> Vertical
-                if (slot.left == null || slot.left.alphabet == null)
-                {
-                    nextSlot = slot;
-                    node = Game.instance.dictionary.root;
-                    while (true)
-                    {
-                        node = node.next[nextSlot.alphabet];
-                        nextSlot = nextSlot.right;
-
-                        if (nextSlot == null)
-                            break;
-
-                        if (nextSlot.alphabet == null)
-                        {
-                            for (int i = 0; i < alphabets.Length; i++)
-                                if (node.next[alphabets[i].ToString()] != null && node.next[alphabets[i].ToString()].valid && (nextSlot.top == null || nextSlot.top.alphabet == null) && (nextSlot.right == null || nextSlot.right.alphabet == null))
-                                    anchorList.AddIfNotExist(new Anchor(nextSlot, alphabets[i].ToString(), "1", Direction.Vertical));
-
-                            break;
-                        }
-                    }
-                }
-
-                // Vertical -> Horizontal
-                if (slot.top == null || slot.top.alphabet == null)
-                {
-                    nextSlot = slot;
-                    node = Game.instance.dictionary.root;
-                    while (true)
-                    {
-                        node = node.next[nextSlot.alphabet];
-                        nextSlot = nextSlot.bottom;
-
-                        if (nextSlot == null)
-                            break;
-
-                        if (nextSlot.alphabet == null)
-                        {
-                            for (int i = 0; i < alphabets.Length; i++)
-                                if (node.next[alphabets[i].ToString()] != null && node.next[alphabets[i].ToString()].valid && (nextSlot.left == null || nextSlot.left.alphabet == null) && (nextSlot.bottom == null || nextSlot.bottom.alphabet == null))
-                                    anchorList.AddIfNotExist(new Anchor(nextSlot, alphabets[i].ToString(), "1", Direction.Horizontal));
-
-                            break;
-                        }
-                    }
-                }
-            }
         }
 
         private void AddAnchor()
         {
+            AddDefaultAnchor();
             AddExistAnchor();
             AddHeadAnchor();
-            AddCenterAnchor();
             AddTailAnchor();
-            AddDefaultAnchor();
+            AddCenterAnchor();
         }
 
         private void PermuteForEachAnchor()
         {
             foreach (Anchor anchor in anchorList)
             {
-                string alphabets = this.alphabets.Eliminate(anchor.alphabet);
-                Slots slots = Game.instance.board.slots;
+                string alphabets = this.alphabets.Eliminate(anchor.alphabet.IsLower() ? Constant.blankAlphabet : anchor.alphabet);
 
                 if (anchor.newAlphabet == "1")
                     anchor.slot.alphabet = anchor.alphabet;
@@ -406,7 +326,7 @@ namespace Scrabble
 
         private void PermuteForEachStartPoint(Slot startSlot, Anchor anchor, string alphabets)
         {
-            PermuteForEachStartPoint(startSlot, startSlot, anchor, "", "", alphabets, Game.instance.dictionary.root);
+            PermuteForEachStartPoint(startSlot, startSlot, anchor, "", "", alphabets, root);
         }
 
         private void PermuteForEachStartPoint(Slot slot, Slot startSlot, Anchor anchor, string alphabets, string newAlphabets, string nextAlphabets, Node node)
@@ -420,11 +340,18 @@ namespace Scrabble
             else if (slot.alphabet == null)
             {
                 Slot nextSlot = slot.next[anchor.direction];
+
                 for (int i = 0; i < nextAlphabets.Length; i++)
                 {
-                    Node nextNode = node.next[nextAlphabets[i].ToString()];
-                    if (nextNode != null && ValidPerpendicularly(nextAlphabets[i].ToString(), slot, anchor.direction))
-                        PermuteForEachStartPoint(nextSlot, startSlot, anchor, alphabets + nextAlphabets[i], newAlphabets + "1", nextAlphabets.Swap(0, i).Substring(1), nextNode);
+                    string nextAlphabet = nextAlphabets[i].ToString();
+                    Node nextNode;
+                    string allAlphabets = nextAlphabet.ToString() == Constant.blankAlphabet ? Constant.allAlphabets : nextAlphabet.ToString();
+                    foreach (char allAlphabet in allAlphabets)
+                    {
+                        nextNode = node.next[allAlphabet.ToString()];
+                        if (nextNode != null && ValidPerpendicularly(allAlphabet.ToString(), slot, anchor.direction))
+                            PermuteForEachStartPoint(nextSlot, startSlot, anchor, alphabets + allAlphabet.ToString(), newAlphabets + "1", nextAlphabets.Swap(0, i).Substring(1), nextNode);
+                    }
                 }
             }
 
@@ -458,7 +385,7 @@ namespace Scrabble
                 tempSlot = previousSlot;
             }
 
-            Node node = Game.instance.dictionary.root;
+            Node node = root;
 
             while (true)
             {
@@ -487,11 +414,20 @@ namespace Scrabble
             moveList.Sort();
         }
 
+        private void Pass()
+        {
+            string alphabets = this.alphabets;
+            string diff = "";
+            this.alphabets = alphabets;
+
+            Debug.Log(name + "\t[Pass]\t[" + alphabets + "] -> [" + this.alphabets + "]\t+0\t" + point + " -> " + point, 1);
+        }
+
         private void Place()
         {
             if (moveList.Count == 0)
             {
-                Debug.Log(name + "\t" + "Passed");
+                Pass();
                 return;
             }
 
@@ -499,9 +435,12 @@ namespace Scrabble
             Place(move.slot, move.direction, move.alphabets, move.newAlphabets);
 
             alphabets = move.nextAlphabets;
-            point = point + move.point;
 
-            Debug.Log(name + "\t" + move.slot.ToString() + "\t" + move.formattedAlphabets + "\t" + move.point);
+            int point = this.point;
+            int diff = move.point;
+            this.point = point + move.point;
+
+            Debug.Log(name + "\t[Move]\t" + move.slot.ToString() + "\t" + move.formattedAlphabets + "\t+" + diff + "\t" + point + " -> " + this.point, 1);
         }
 
         private void Place(Slot slot, Direction direction, string alphabets, string newAlphabets)
@@ -512,7 +451,7 @@ namespace Scrabble
             Slot nextSlot = slot.next[direction];
 
             if (newAlphabets[0].ToString() == "1")
-                Game.instance.board.Place(slot, alphabets[0].ToString());
+                board.Place(slot, alphabets[0].ToString());
 
             Place(slot.next[direction], direction, alphabets.Substring(1), newAlphabets.Substring(1));
         }
@@ -521,31 +460,31 @@ namespace Scrabble
         {
             ResetPlay();
             AddAnchor();
-            Debug.Log("===ANCHOR===" + "(" + anchorList.Count + ")");
-            //foreach (Anchor anchor in anchorList)
-            //    Debug.Log(anchor.ToString());
-            Debug.Log();
+
+            Debug.Log(2);
+            Debug.Log(name + "\t[Anchor]\t" + anchorList.Count, 2);
+            anchorList.Log(3);
+            Debug.Log(3);
+            Debug.Step(3);
 
             PermuteForEachAnchor();
             Evaluate();
 
-            Debug.Log("===MOVE===" + "(" + moveList.Count + ")");
-            //foreach (Move move in moveList)
-            //    Debug.Log(move.ToString());
-            Debug.Log();
+            Debug.Log(name + "\t[Move]\t" + anchorList.Count, 2);
+            moveList.Log(3);
+            Debug.Log(3);
+            Debug.Step(3);
 
-            Debug.Log("===PLACE===");
             Place();
-            Debug.Log();
+            Debug.Log(1);
+            board.Log(1);
 
-            PrintBoard();
+            Debug.Step(2);
         }
 
-        private void PrintBoard()
+        public override string ToString()
         {
-            Debug.Log("===BOARD===");
-            Debug.Log(Game.instance.board.ToString());
-            Debug.Log();
+            return name + "\t" + point;
         }
     }
 }

@@ -1,5 +1,4 @@
-﻿using Common;
-using System;
+﻿using System;
 
 namespace Scrabble
 {
@@ -10,14 +9,11 @@ namespace Scrabble
             Game game = new Game();
             game.Reset();
 
-            //hack space
-
-
-
-            //end of hack space
+            Board board = game.board;
+            Slots slots = board.slots;
 
             game.Step();
-            Debug.Log("Press any key to exit");
+
             Console.ReadKey();
         }
     }

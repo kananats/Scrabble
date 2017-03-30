@@ -1,11 +1,39 @@
 ﻿using System;
 using Common;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Scrabble
 {
     static class ExtensionMethod
     {
+        public static void Log(this object o, int level = 0)
+        {
+            Debug.Log(o.ToString(), level);
+        }
+
+        public static void Log<T>(this IEnumerable<T> collection, int level = 0)
+        {
+            foreach (T item in collection)
+                item.Log(level);
+        }
+
+        public static bool IsUpper(this string s)
+        {
+            if (s.Any(char.IsLower))
+                return false;
+
+            return true;
+        }
+
+        public static bool IsLower(this string s)
+        {
+            if (s.Any(char.IsUpper))
+                return false;
+
+            return true;
+        }
+
         public static Direction Perpendicular(this Direction direction)
         {
             return direction == Direction.Horizontal ? Direction.Vertical : Direction.Horizontal;
@@ -62,63 +90,114 @@ namespace Scrabble
             return item;
         }
 
-        public static int ToIntIndex(this string s)
+        public static int ToIndex(this string s)
         {
-            s = s.ToLower();
             switch (s)
             {
                 case "a":
+                case "A":
                     return 0;
+
                 case "b":
+                case "B":
                     return 1;
+
                 case "c":
+                case "C":
                     return 2;
+
                 case "d":
+                case "D":
                     return 3;
+
                 case "e":
+                case "E":
                     return 4;
+
                 case "f":
+                case "F":
                     return 5;
+
                 case "g":
+                case "G":
                     return 6;
+
                 case "h":
+                case "H":
                     return 7;
+
                 case "i":
+                case "I":
                     return 8;
+
                 case "j":
+                case "J":
                     return 9;
+
                 case "k":
+                case "K":
                     return 10;
+
                 case "l":
+                case "L":
                     return 11;
+
                 case "m":
+                case "M":
                     return 12;
+
                 case "n":
+                case "N":
                     return 13;
+
                 case "o":
+                case "O":
                     return 14;
+
                 case "p":
+                case "P":
                     return 15;
+
                 case "q":
+                case "Q":
                     return 16;
+
                 case "r":
+                case "R":
                     return 17;
+
                 case "s":
+                case "S":
                     return 18;
+
                 case "t":
+                case "T":
                     return 19;
+
                 case "u":
+                case "U":
                     return 20;
+
                 case "v":
+                case "V":
                     return 21;
+
                 case "w":
+                case "W":
                     return 22;
+
                 case "x":
+                case "X":
                     return 23;
+
                 case "y":
+                case "Y":
                     return 24;
+
                 case "z":
+                case "Z":
                     return 25;
+
                 default:
                     throw new Exception("Invalid input string");
             }

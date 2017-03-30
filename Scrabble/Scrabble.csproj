@@ -61,6 +61,7 @@
     <Compile Include="Bag.cs" />
     <Compile Include="Board.cs" />
     <Compile Include="Anchor.cs" />
+    <Compile Include="Constant.cs" />
     <Compile Include="Move.cs" />
     <Compile Include="Debug.cs" />
     <Compile Include="Dictionary.cs" />

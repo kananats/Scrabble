@@ -4,15 +4,16 @@ namespace Common
 {
     static class Debug
     {
-        private static int LOG_LEVEL = 10;
-        private static bool STEP = true;
+        private static int LOG_LEVEL = 1;
+        private static int STEP_LEVEL = 2;
 
-        public static void Log(string message = "")
-        {
-            Log(0, message);
-        }
-
-        public static void Log(int level, string message = "")
+        /* 
+         * 0: Result
+         * 1: Move, Draw, Board, Reduce
+         * 2: Anchor Count, Move Count
+         * 3: Anchor List, Move List
+         */
+        public static void Log(string message, int level = 0)
         {
             if (level > LOG_LEVEL)
                 return;
@@ -20,25 +21,23 @@ namespace Common
             Console.WriteLine(message);
         }
 
-        public static void Step(string message = null)
+        public static void Log(int level = 0)
         {
-            Step(null, message);
+            Log("", level);
         }
 
-        public static void Step(Action action, string message = null)
+        /* 
+         * 0: -
+         * 1: Game
+         * 2: Move
+         * 3: Anchor
+         */
+        public static void Step(int level = 0)
         {
-            if (STEP)
-            {
-                if (message != null)
-                    Log(message);
-
-                Console.ReadLine();
-            }
-
-            if (action == null)
+            if (level > STEP_LEVEL)
                 return;
 
-            action.Invoke();
+            Console.ReadLine();
         }
     }
 }

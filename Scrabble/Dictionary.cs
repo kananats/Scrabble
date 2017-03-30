@@ -15,12 +15,12 @@ namespace Scrabble
         {
             get
             {
-                return nodes[s.ToIntIndex()];
+                return nodes[s.ToIndex()];
             }
 
             set
             {
-                nodes[s.ToIntIndex()] = value;
+                nodes[s.ToIndex()] = value;
             }
         }
     }
