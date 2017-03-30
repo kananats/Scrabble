@@ -28,6 +28,8 @@ namespace Scrabble
 
         private Queue<Player> playerQueue;
 
+        private Player leader;
+
         public Game()
         {
             instance = this;
@@ -36,6 +38,8 @@ namespace Scrabble
             bag = new Bag();
             board = new Board();
             playerQueue = new Queue<Player>();
+
+            Reset();
         }
 
         public void Reset()
@@ -53,35 +57,46 @@ namespace Scrabble
 
             playerQueue.Enqueue(player1);
             playerQueue.Enqueue(player2);
+
+            leader = null;
         }
 
-        public void Step()
+        public void Cycle()
         {
-            Player player = playerQueue.Dequeue();
-            playerQueue.Enqueue(player);
+            Reset();
 
-            player.Step();
+            while (true)
+            {
+                Player player = playerQueue.Dequeue();
+                playerQueue.Enqueue(player);
+
+                player.Step();
+
+                if (player.alphabets.Length == 0)
+                {
+                    List<Player> playerList = new List<Player>(playerQueue);
+                    playerList.ForEach(x => x.Reduce());
+
+                    if (player.point > leader.point)
+                        leader = player;
+
+                    Debug.Log(leader.name + "[Win]" + "\t" + leader.point, LogLevel.Result);
+                    Debug.Step(LogLevel.Result);
+
+                    Reset();
+                    break;
+                }
+
+                if (player.point > leader.point)
+                    leader = player;
+            }
+
+            Finish();
         }
 
         public void Finish()
         {
-            List<Player> playerList = new List<Player>(playerQueue);
-            playerList.ForEach(x => x.Reduce());
-
-            int point = playerList.Max(x => x.point);
-
-            string s = "";
-            playerList.FindAll(x => x.point == point).ForEach(x =>
-            {
-                s = s + x.name + "\t";
-            });
-
-            Debug.Log(s + "[Win]" + "\t" + point, 0);
-
-            Debug.Step(1);
-            Debug.Log(0);
-            Reset();
-            Step();
+            
         }
     }
 }

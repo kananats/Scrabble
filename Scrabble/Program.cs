@@ -12,7 +12,8 @@ namespace Scrabble
             Board board = game.board;
             Slots slots = board.slots;
 
-            game.Step();
+            for (int i = 0; i < 3; i++)
+                game.Cycle();
 
             Console.ReadKey();
         }

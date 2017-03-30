@@ -2,10 +2,32 @@
 
 namespace Common
 {
+    [Flags]
+    public enum LogLevel
+    {
+        Assessment = 1 << 0,
+        Result = 1 << 1,
+        Draw = 1 << 2,
+        Move = 1 << 3,
+        Reduce = 1 << 4,
+        Board = 1 << 5,
+        MoveCount = 1 << 6,
+        MoveDetail = 1 << 7,
+        AnchorCount = 1 << 8,
+        AnchorDetail = 1 << 9,
+
+        Default = Assessment,
+        ShowResult = Default | Result,
+        ShowMove = ShowResult | Draw | Move | Reduce,
+        ShowMoveWithBoard = ShowMove | Board,
+        ShowMoveDetail = ShowMoveWithBoard | MoveCount | MoveDetail,
+        ShowAnchorDetail = ShowMoveDetail | AnchorCount | AnchorDetail,
+        All = ShowAnchorDetail
+    }
+
     static class Debug
     {
-        private static int LOG_LEVEL = 1;
-        private static int STEP_LEVEL = 2;
+        private static LogLevel LOG_LEVEL = LogLevel.ShowResult;
 
         /* 
          * 0: Result
@@ -13,17 +35,12 @@ namespace Common
          * 2: Anchor Count, Move Count
          * 3: Anchor List, Move List
          */
-        public static void Log(string message, int level = 0)
+        public static void Log(string message, LogLevel level)
         {
-            if (level > LOG_LEVEL)
+            if (!LOG_LEVEL.HasFlag(level))
                 return;
 
             Console.WriteLine(message);
-        }
-
-        public static void Log(int level = 0)
-        {
-            Log("", level);
         }
 
         /* 
@@ -32,9 +49,9 @@ namespace Common
          * 2: Move
          * 3: Anchor
          */
-        public static void Step(int level = 0)
+        public static void Step(LogLevel level)
         {
-            if (level > STEP_LEVEL)
+            if (!LOG_LEVEL.HasFlag(level))
                 return;
 
             Console.ReadLine();

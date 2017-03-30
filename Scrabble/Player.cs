@@ -28,7 +28,11 @@ namespace Scrabble
 
         private int level;
 
-        private string alphabets;
+        public string alphabets
+        {
+            get;
+            private set;
+        }
 
         private List<Anchor> anchorList;
         private List<Move> moveList;
@@ -72,7 +76,6 @@ namespace Scrabble
         {
             Play();
             Draw();
-            CheckEndGame();
         }
 
         public void Reduce()
@@ -87,7 +90,7 @@ namespace Scrabble
                 return;
 
             this.point = point + diff;
-            Debug.Log(name + "\t[Reduce]\t" + alphabets + "\t" + diff + "\t" + point + " -> " + this.point, 1);
+            Debug.Log(name + "\t[Reduce]\t" + alphabets + "\t" + diff + "\t" + point + " -> " + this.point, LogLevel.Reduce);
         }
 
         private void Draw()
@@ -107,16 +110,7 @@ namespace Scrabble
 
             this.alphabets = alphabets + diff;
 
-            Debug.Log(name + "\t[Draw]\t" + diff + "\t[" + alphabets + "] -> [" + this.alphabets + "]", 1);
-        }
-
-        private void CheckEndGame()
-        {
-            if (alphabets.Length == 0)
-                game.Finish();
-
-            else
-                game.Step();
+            Debug.Log(name + "\t[Draw]\t" + diff + "\t[" + alphabets + "] -> [" + this.alphabets + "]", LogLevel.Draw);
         }
 
         private void ResetPlay()
@@ -420,7 +414,7 @@ namespace Scrabble
             string diff = "";
             this.alphabets = alphabets;
 
-            Debug.Log(name + "\t[Pass]\t[" + alphabets + "] -> [" + this.alphabets + "]\t+0\t" + point + " -> " + point, 1);
+            Debug.Log(name + "\t[Pass]\t[" + alphabets + "] -> [" + this.alphabets + "]\t+0\t" + point + " -> " + point, LogLevel.Move);
         }
 
         private void Place()
@@ -440,7 +434,7 @@ namespace Scrabble
             int diff = move.point;
             this.point = point + move.point;
 
-            Debug.Log(name + "\t[Move]\t" + move.slot.ToString() + "\t" + move.formattedAlphabets + "\t+" + diff + "\t" + point + " -> " + this.point, 1);
+            Debug.Log(name + "\t[Move]\t" + move.slot.ToString() + "\t" + move.formattedAlphabets + "\t+" + diff + "\t" + point + " -> " + this.point, LogLevel.Move);
         }
 
         private void Place(Slot slot, Direction direction, string alphabets, string newAlphabets)
@@ -461,25 +455,21 @@ namespace Scrabble
             ResetPlay();
             AddAnchor();
 
-            Debug.Log(2);
-            Debug.Log(name + "\t[Anchor]\t" + anchorList.Count, 2);
-            anchorList.Log(3);
-            Debug.Log(3);
-            Debug.Step(3);
+            Debug.Log(name + "\t[Anchor]\t" + anchorList.Count, LogLevel.AnchorDetail);
+            anchorList.ForEach( x => Debug.Log(x.ToString(), LogLevel.AnchorDetail));
+            Debug.Step(LogLevel.AnchorDetail);
 
             PermuteForEachAnchor();
             Evaluate();
 
-            Debug.Log(name + "\t[Move]\t" + anchorList.Count, 2);
-            moveList.Log(3);
-            Debug.Log(3);
-            Debug.Step(3);
+            Debug.Log(name + "\t[Move]\t" + anchorList.Count, LogLevel.MoveDetail);
+            moveList.ForEach(x => Debug.Log(x.ToString(), LogLevel.MoveDetail));
+            Debug.Step(LogLevel.MoveDetail);
 
+            Debug.Log(board.ToString(), LogLevel.Board);
             Place();
-            Debug.Log(1);
-            board.Log(1);
 
-            Debug.Step(2);
+            Debug.Step(LogLevel.Move);
         }
 
         public override string ToString()

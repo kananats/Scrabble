@@ -7,17 +7,6 @@ namespace Scrabble
 {
     static class ExtensionMethod
     {
-        public static void Log(this object o, int level = 0)
-        {
-            Debug.Log(o.ToString(), level);
-        }
-
-        public static void Log<T>(this IEnumerable<T> collection, int level = 0)
-        {
-            foreach (T item in collection)
-                item.Log(level);
-        }
-
         public static bool IsUpper(this string s)
         {
             if (s.Any(char.IsLower))
