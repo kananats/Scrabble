@@ -27,7 +27,7 @@ namespace Common
 
     static class Debug
     {
-        private static LogLevel LOG_LEVEL = LogLevel.ShowResult;
+        private static LogLevel LOG_LEVEL = LogLevel.Default;
 
         /* 
          * 0: Result
@@ -54,6 +54,7 @@ namespace Common
             if (!LOG_LEVEL.HasFlag(level))
                 return;
 
+            Console.WriteLine("STEP");
             Console.ReadLine();
         }
     }

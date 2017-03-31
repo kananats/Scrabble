@@ -12,10 +12,14 @@ namespace Scrabble
             Board board = game.board;
             Slots slots = board.slots;
 
-            for (int i = 0; i < 3; i++)
-                game.Cycle();
+            int numberOfIteration = 1000;
+            for (int i = 0; i < numberOfIteration; i++)
+                game.Loop();
 
-            Console.ReadKey();
+            Console.WriteLine("Program is finished");
+
+            while (true)
+                Console.ReadKey();
         }
     }
 }

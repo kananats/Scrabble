@@ -88,6 +88,12 @@ namespace Scrabble
             private set;
         }
 
+        public static int roundLimit
+        {
+            get;
+            private set;
+        }
+
         static Constant()
         {
             points = new Points();
@@ -97,6 +103,7 @@ namespace Scrabble
             bagAlphabets = "AAAAAAAAABBCCDDDDEEEEEEEEEEEEFFGGGHHIIIIIIIIIJKLLLLMMNNNNNNOOOOOOOOPPQRRRRRRSSSSTTTTTTUUUUVVWWXYYZ__";
             oldAlphabet = "0";
             newAlphabet = "1";
+            roundLimit = 100;
         }
     }
 }

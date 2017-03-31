@@ -59,6 +59,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Assessment.cs" />
     <Compile Include="Bag.cs" />
     <Compile Include="Board.cs" />
     <Compile Include="Anchor.cs" />
