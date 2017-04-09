@@ -7,14 +7,13 @@ namespace Scrabble
         static void Main(string[] args)
         {
             Game game = new Game();
-            game.Reset();
 
             Board board = game.board;
             Slots slots = board.slots;
 
-            int numberOfIteration = 1000;
+            int numberOfIteration = 100;
             for (int i = 0; i < numberOfIteration; i++)
-                game.Loop();
+                game.SingleGame();
 
             Console.WriteLine("Program is finished");
 

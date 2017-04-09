@@ -1,4 +1,6 @@
-﻿using System.IO;
+﻿using System.Collections.Generic;
+using System.IO;
+using Common;
 
 namespace Scrabble
 {
@@ -45,19 +47,25 @@ namespace Scrabble
 
     class Dictionary
     {
-        public Node root
-        {
-            get;
-            private set;
-        }
+        private IEnumerable<string> lines;
 
         public Dictionary()
         {
-            root = new Node();
+            lines = File.ReadLines(@"..\..\Resources\dictionary.txt");
+        }
+
+        public Node CreateDictionary(int level)
+        {
+            level = level < 1 ? 1 : (level > 100 ? 100 : level);
+
+            Node root = new Node();
             root.valid = true;
 
-            foreach (string line in File.ReadLines(@"..\..\Resources\dictionary.txt"))
+            foreach (string line in lines)
             {
+                if (Randomizer.Int(1, 100) > level)
+                    continue;
+
                 Node node = root;
 
                 for (int i = 0; i < line.Length; i++)
@@ -73,26 +81,8 @@ namespace Scrabble
                         node = node.next[alphabet];
                 }
             }
-        }
 
-        public bool Search(string alphabets)
-        {
-            Node node = root;
-
-            for (int i = 0; i < alphabets.Length; i++)
-            {
-                string alphabet = alphabets[i].ToString();
-
-                if (node.next[alphabet] == null)
-                    return false;
-
-                else if (i == alphabets.Length - 1)
-                    return node.next[alphabet].valid;
-
-                else
-                    node = node.next[alphabet];
-            }
-            return false;
+            return root;
         }
     }
 }

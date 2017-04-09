@@ -34,8 +34,17 @@ namespace Scrabble
             private set;
         }
 
-        private List<Anchor> anchorList;
-        private List<Move> moveList;
+        public List<Anchor> anchorList
+        {
+            get;
+            private set;
+        }
+
+        public List<Move> moveList
+        {
+            get;
+            private set;
+        }
 
         private Game game;
         private Bag bag;
@@ -58,7 +67,6 @@ namespace Scrabble
 
             slots = board.slots;
             slotList = board.slotList;
-            root = game.dictionary.root;
         }
 
         public void Reset(int level)
@@ -66,6 +74,7 @@ namespace Scrabble
             alphabets = "";
 
             this.level = level < 1 ? 1 : (level > 100 ? 100 : level);
+            root = game.dictionary.CreateDictionary(level);
 
             point = 0;
 
@@ -202,8 +211,10 @@ namespace Scrabble
                         while (true)
                         {
                             node = node.next[nextSlot.alphabet];
-                            nextSlot = nextSlot.next[direction];
+                            if (node == null)
+                                break;
 
+                            nextSlot = nextSlot.next[direction];
                             if (nextSlot == null)
                                 break;
 
@@ -238,11 +249,14 @@ namespace Scrabble
                         while (startSlot.previous[direction] != null && startSlot.previous[direction].alphabet != null)
                             startSlot = startSlot.previous[direction];
 
-                        while (startSlot != slot.previous[direction])
+                        while (startSlot != slot.previous[direction] && startNode != null)
                         {
                             startNode = startNode.next[startSlot.alphabet];
                             startSlot = startSlot.next[direction];
                         }
+
+                        if (startNode == null)
+                            continue;
 
                         foreach (char alphabet in alphabets)
                         {
@@ -411,7 +425,6 @@ namespace Scrabble
         private void Pass()
         {
             string alphabets = this.alphabets;
-            string diff = "";
             this.alphabets = alphabets;
 
             Debug.Log(name + "\t[Pass]\t[" + alphabets + "] -> [" + this.alphabets + "]\t+0\t" + point + " -> " + point, LogLevel.Move);
@@ -456,7 +469,7 @@ namespace Scrabble
             AddAnchor();
 
             Debug.Log(name + "\t[Anchor]\t" + anchorList.Count, LogLevel.AnchorDetail);
-            anchorList.ForEach( x => Debug.Log(x.ToString(), LogLevel.AnchorDetail));
+            anchorList.ForEach(x => Debug.Log(x.ToString(), LogLevel.AnchorDetail));
             Debug.Step(LogLevel.AnchorDetail);
 
             PermuteForEachAnchor();
@@ -464,12 +477,14 @@ namespace Scrabble
 
             Debug.Log(name + "\t[Move]\t" + anchorList.Count, LogLevel.MoveDetail);
             moveList.ForEach(x => Debug.Log(x.ToString(), LogLevel.MoveDetail));
-            Debug.Step(LogLevel.MoveDetail);
+
+            Debug.Log("", LogLevel.MoveDetail);
+
+            Place();
+            Debug.Step(LogLevel.Move);
 
             Debug.Log(board.ToString(), LogLevel.Board);
-            Place();
-
-            Debug.Step(LogLevel.Move);
+            Debug.Step(LogLevel.MoveDetail);
         }
 
         public override string ToString()

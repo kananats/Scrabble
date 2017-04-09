@@ -29,13 +29,7 @@ namespace Common
     {
         private static LogLevel LOG_LEVEL = LogLevel.Default;
 
-        /* 
-         * 0: Result
-         * 1: Move, Draw, Board, Reduce
-         * 2: Anchor Count, Move Count
-         * 3: Anchor List, Move List
-         */
-        public static void Log(string message, LogLevel level)
+        public static void Log(string message, LogLevel level = LogLevel.Assessment)
         {
             if (!LOG_LEVEL.HasFlag(level))
                 return;
@@ -43,12 +37,6 @@ namespace Common
             Console.WriteLine(message);
         }
 
-        /* 
-         * 0: -
-         * 1: Game
-         * 2: Move
-         * 3: Anchor
-         */
         public static void Step(LogLevel level)
         {
             if (!LOG_LEVEL.HasFlag(level))
