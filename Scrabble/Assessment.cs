@@ -162,12 +162,17 @@ namespace Scrabble
             boardGameModelScore40 = new BoardGameModel();
             boardGameModelScore45 = new BoardGameModel();
             boardGameModelScore50 = new BoardGameModel();
-            
+
             seesawModel = new SeesawModel();
         }
 
         public override string ToString()
         {
+            return string.Format("S = {0:#.###}, L = {1:#.###}, R = {2:#.###}"
+                , seesawModel.averageTop
+                , seesawModel.averageBottom
+                , Math.Sqrt(seesawModel.averageTop) / seesawModel.averageBottom);
+            /*
             return string.Format("N = {0}, L = {1}, S = {2:#.###}, B = {3:#.###}, B5 = {4:#.###}, B10 = {5:#.###}, B15 = {6:#.###}, B20 = {7:#.###}, B25 = {8:#.###}, B30 = {9:#.###}, B35 = {10:#.###}, B40 = {11:#.###}, B45 = {12:#.###}, B50 = {13:#.###}"
                 , seesawModel.numberOfData
                 , seesawModel.averageBottom
@@ -183,6 +188,7 @@ namespace Scrabble
                 , boardGameModelScore40.averageTop
                 , boardGameModelScore45.averageTop
                 , boardGameModelScore50.averageTop);
+                */
         }
     }
 }
