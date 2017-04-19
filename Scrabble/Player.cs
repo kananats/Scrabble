@@ -20,7 +20,7 @@ namespace Scrabble
             private set;
         }
 
-        public int point
+        public double point
         {
             get;
             private set;
@@ -89,9 +89,9 @@ namespace Scrabble
 
         public void Reduce()
         {
-            int point = this.point;
+            double point = this.point;
 
-            int diff = 0;
+            double diff = 0;
             foreach (char alphabet in alphabets)
                 diff -= Constant.points[alphabet.ToString()];
 
@@ -443,8 +443,8 @@ namespace Scrabble
 
             alphabets = move.nextAlphabets;
 
-            int point = this.point;
-            int diff = move.point;
+            double point = this.point;
+            double diff = move.point;
             this.point = point + move.point;
 
             Debug.Log(name + "\t[Move]\t" + move.slot.ToString() + "\t" + move.formattedAlphabets + "\t+" + diff + "\t" + point + " -> " + this.point, LogLevel.Move);

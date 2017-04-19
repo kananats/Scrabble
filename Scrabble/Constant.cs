@@ -4,13 +4,13 @@ namespace Scrabble
 {
     public class Points
     {
-        private Dictionary<string, int> points;
+        private Dictionary<string, double> points;
 
-        public int this[string alphabet]
+        public double this[string alphabet]
         {
             get
             {
-                int value;
+                double value;
                 points.TryGetValue(alphabet, out value);
 
                 return value;
@@ -19,7 +19,7 @@ namespace Scrabble
 
         public Points()
         {
-            points = new Dictionary<string, int>();
+            points = new Dictionary<string, double>();
 
             points["A"] = 1;
             points["B"] = 3;

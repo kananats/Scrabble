@@ -83,7 +83,7 @@ namespace Scrabble
                 Player player = playerQueue.Dequeue();
                 playerQueue.Enqueue(player);
 
-                int point = player.point;
+                double point = player.point;
                 player.Step();
 
                 passStreak = point == player.point ? passStreak + 1 : 0;

@@ -35,13 +35,13 @@ namespace Scrabble
             private set;
         }
 
-        public int point
+        public double point
         {
             get;
             private set;
         }
 
-        public float evaluate
+        public double evaluate
         {
             get;
             private set;
@@ -85,17 +85,17 @@ namespace Scrabble
             return 0.0f;
         }
 
-        private int GetBingoPoint()
+        private double GetBingoPoint()
         {
             return nextAlphabets == "" ? 50 : 0;
         }
 
-        private int GetMainPoint()
+        private double GetMainPoint()
         {
             return GetMainPoint(0, 0, 1, slot, alphabets, newAlphabets);
         }
 
-        private int GetMainPoint(int primaryPoint, int secondaryPoint, int multiplier, Slot slot, string alphabets, string newAlphabets)
+        private double GetMainPoint(double primaryPoint, double secondaryPoint, double multiplier, Slot slot, string alphabets, string newAlphabets)
         {
             if (alphabets == "")
                 return primaryPoint * multiplier + secondaryPoint;
@@ -108,7 +108,7 @@ namespace Scrabble
             return GetMainPoint(primaryPoint + Constant.points[alphabet], secondaryPoint, multiplier, slot.next[direction], alphabets.Substring(1), newAlphabets.Substring(1));
         }
 
-        private int GetPerpendicularPoint(string alphabet, Slot slot)
+        private double GetPerpendicularPoint(string alphabet, Slot slot)
         {
             Slot previousSlot = slot.previous[direction.Perpendicular()];
             Slot nextSlot = slot.next[direction.Perpendicular()];
@@ -119,7 +119,7 @@ namespace Scrabble
             slot.alphabet = alphabet;
             Slot tempSlot = previousSlot = slot;
 
-            int point = 0;
+            double point = 0;
 
             while (true)
             {
