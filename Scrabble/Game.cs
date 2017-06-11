@@ -1,6 +1,5 @@
 ﻿using Common;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace Scrabble
 {
@@ -34,6 +33,7 @@ namespace Scrabble
 
         private Queue<Player> playerQueue;
 
+        private double level;
         private Player leader;
 
         public Game()
@@ -45,10 +45,17 @@ namespace Scrabble
             board = new Board();
             playerQueue = new Queue<Player>();
 
+            level = 1;
+
             assessment = new Assessment();
         }
 
-        public void Reset(int level = 100)
+        public void SetLevel(double level)
+        {
+            this.level = level > 1 ? 1 : (level < 0 ? 0 : level);
+        }
+
+        public void Reset()
         {
             bag.Reset();
             board.Reset();
@@ -67,14 +74,16 @@ namespace Scrabble
             leader = null;
         }
 
-        public void SingleGame(int level = 100)
+        public void SingleGame()
         {
-            Reset(level);
+            Reset();
 
             int round = 0;
             int seesaw = 0;
 
             int passStreak = 0;
+
+            int branch = 0;
 
             while (true)
             {
@@ -85,6 +94,8 @@ namespace Scrabble
 
                 double point = player.point;
                 player.Step();
+
+                branch = branch + player.moveList.Count;
 
                 passStreak = point == player.point ? passStreak + 1 : 0;
 
@@ -103,6 +114,7 @@ namespace Scrabble
                     Debug.Step(LogLevel.Result);
 
                     assessment.seesawModel.Add(seesaw, round);
+                    assessment.boardGameModel.Add(branch * 1.0 / round, round);
                     break;
                 }
 

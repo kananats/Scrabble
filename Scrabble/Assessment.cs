@@ -89,106 +89,20 @@ namespace Scrabble
             private set;
         }
 
-        public BoardGameModel boardGameModelScore5
-        {
-            get;
-            private set;
-        }
-
-        public BoardGameModel boardGameModelScore10
-        {
-            get;
-            private set;
-        }
-
-        public BoardGameModel boardGameModelScore15
-        {
-            get;
-            private set;
-        }
-
-        public BoardGameModel boardGameModelScore20
-        {
-            get;
-            private set;
-        }
-
-        public BoardGameModel boardGameModelScore25
-        {
-            get;
-            private set;
-        }
-
-        public BoardGameModel boardGameModelScore30
-        {
-            get;
-            private set;
-        }
-
-        public BoardGameModel boardGameModelScore35
-        {
-            get;
-            private set;
-        }
-
-        public BoardGameModel boardGameModelScore40
-        {
-            get;
-            private set;
-        }
-
-        public BoardGameModel boardGameModelScore45
-        {
-            get;
-            private set;
-        }
-
-        public BoardGameModel boardGameModelScore50
-        {
-            get;
-            private set;
-        }
-
         public Assessment()
         {
             boardGameModel = new BoardGameModel();
-            boardGameModelScore5 = new BoardGameModel();
-            boardGameModelScore10 = new BoardGameModel();
-            boardGameModelScore15 = new BoardGameModel();
-            boardGameModelScore20 = new BoardGameModel();
-            boardGameModelScore25 = new BoardGameModel();
-            boardGameModelScore30 = new BoardGameModel();
-            boardGameModelScore35 = new BoardGameModel();
-            boardGameModelScore40 = new BoardGameModel();
-            boardGameModelScore45 = new BoardGameModel();
-            boardGameModelScore50 = new BoardGameModel();
 
             seesawModel = new SeesawModel();
         }
 
         public override string ToString()
         {
-            return string.Format("S = {0:#.###}, L = {1:#.###}, R = {2:#.###}"
+            return string.Format("S = {0:#.###}, L = {1:#.###}, B = {2:#.###}, D = {3:#.###}"
                 , seesawModel.averageTop
                 , seesawModel.averageBottom
-                , Math.Sqrt(seesawModel.averageTop) / seesawModel.averageBottom);
-            /*
-            return string.Format("N = {0}, L = {1}, S = {2:#.###}, B = {3:#.###}, B5 = {4:#.###}, B10 = {5:#.###}, B15 = {6:#.###}, B20 = {7:#.###}, B25 = {8:#.###}, B30 = {9:#.###}, B35 = {10:#.###}, B40 = {11:#.###}, B45 = {12:#.###}, B50 = {13:#.###}"
-                , seesawModel.numberOfData
-                , seesawModel.averageBottom
-                , seesawModel.averageTop
                 , boardGameModel.averageTop
-                , boardGameModelScore5.averageTop
-                , boardGameModelScore10.averageTop
-                , boardGameModelScore15.averageTop
-                , boardGameModelScore20.averageTop
-                , boardGameModelScore25.averageTop
-                , boardGameModelScore30.averageTop
-                , boardGameModelScore35.averageTop
-                , boardGameModelScore40.averageTop
-                , boardGameModelScore45.averageTop
-                , boardGameModelScore50.averageTop);
-                */
+                , boardGameModel.averageBottom);
         }
     }
 }

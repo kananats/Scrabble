@@ -47,6 +47,8 @@ namespace Scrabble
 
     class Dictionary
     {
+        private List<string> words;
+
         private IEnumerable<string> lines;
 
         public Dictionary()
@@ -54,27 +56,42 @@ namespace Scrabble
             lines = File.ReadLines(@"..\..\Resources\dictionary.txt");
         }
 
-        public Node CreateDictionary(int level)
+        public void Reset(double level)
         {
-            level = level < 1 ? 1 : (level > 100 ? 100 : level);
-
-            Node root = new Node();
-            root.valid = true;
+            words = new List<string>();
 
             foreach (string line in lines)
             {
-                if (Randomizer.Int(1, 100) > level)
+                if (Randomizer.Double(0, 1) > level)
+                    continue;
+
+                words.Add(line);
+            }
+        }
+
+        public Node CreateDictionary(double level)
+        {
+            level = level > 1 ? 1 : (level < 0 ? 0 : level);
+
+            Node root = new Node()
+            {
+                valid = true
+            };
+
+            foreach (string word in words)
+            {
+                if (Randomizer.Double(0, 1) > level)
                     continue;
 
                 Node node = root;
 
-                for (int i = 0; i < line.Length; i++)
+                for (int i = 0; i < word.Length; i++)
                 {
-                    string alphabet = line[i].ToString().ToLower();
+                    string alphabet = word[i].ToString().ToLower();
                     if (node.next[alphabet] == null)
                         node.next[alphabet] = new Node();
 
-                    if (i == line.Length - 1)
+                    if (i == word.Length - 1)
                         node.next[alphabet].valid = true;
 
                     else

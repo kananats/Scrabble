@@ -1,5 +1,5 @@
-﻿using System;
-using Common;
+﻿using Common;
+using System;
 
 namespace Scrabble
 {
@@ -12,17 +12,25 @@ namespace Scrabble
             Board board = game.board;
             Slots slots = board.slots;
 
-            int numberOfIteration = 30;
+            int numberOfIteration = 200;
 
-            for (int level = 10; level <= 100; level += 10)
+            for (double d = 0.1; d <= 1; d += 0.1)
             {
-                game.assessment.seesawModel.Reset();
+                game.dictionary.Reset(d);
+                for (double p = 0.1; p <= 1; p += 0.1)
+                {
+                    game.assessment.seesawModel.Reset();
+                    game.assessment.boardGameModel.Reset();
 
-                for (int i = 0; i < numberOfIteration; i++)
-                    game.SingleGame(level);
+                    for (int i = 0; i < numberOfIteration; i++)
+                    {
+                        game.SetLevel(p);
+                        game.SingleGame();
+                    }
 
-                string assessment = game.assessment.ToString();
-                Debug.Log(string.Format("W = {0} {1}\n", level, game.assessment.ToString()), LogLevel.Default);
+                    string assessment = game.assessment.ToString();
+                    Debug.Log(string.Format("D = {0}, P = {1}, {2}", d, p, game.assessment.ToString()), LogLevel.Default);
+                }
             }
 
             Console.WriteLine("Program is finished");

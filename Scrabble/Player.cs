@@ -69,11 +69,11 @@ namespace Scrabble
             slotList = board.slotList;
         }
 
-        public void Reset(int level)
+        public void Reset(double level)
         {
             alphabets = "";
 
-            this.level = level < 1 ? 1 : (level > 100 ? 100 : level);
+            level = level > 1 ? 1 : (level < 0 ? 0 : level);
             root = game.dictionary.CreateDictionary(level);
 
             point = 0;

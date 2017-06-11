@@ -70,7 +70,7 @@ namespace Scrabble
 
         public void Evaluate()
         {
-            point = GetMainPoint() + GetBingoPoint();
+            point = GetMainPoint() + GetBingoPoint() + 50.0 / alphabets.Length;
             evaluate = point + GetLeavePoint() + GetBoardPoint();
         }
 
