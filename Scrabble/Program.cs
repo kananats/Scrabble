@@ -12,12 +12,12 @@ namespace Scrabble
             Board board = game.board;
             Slots slots = board.slots;
 
-            int numberOfIteration = 200;
+            int numberOfIteration = 100;
 
-            for (double d = 0.1; d <= 1; d += 0.1)
+            for (double d = 1; d <= 1; d += 0.1)
             {
                 game.dictionary.Reset(d);
-                for (double p = 0.1; p <= 1; p += 0.1)
+                for (double p = 1; p <= 1; p += 0.1)
                 {
                     game.assessment.seesawModel.Reset();
                     game.assessment.boardGameModel.Reset();

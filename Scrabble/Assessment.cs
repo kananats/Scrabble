@@ -49,7 +49,7 @@ namespace Scrabble
             accumulatedBottom = accumulatedBottom + bottom;
         }
 
-        public void Reset()
+        public virtual void Reset()
         {
             numberOfData = 0;
             accumulatedTop = 0;
@@ -61,9 +61,50 @@ namespace Scrabble
 
     public class SeesawModel : GameRefinement
     {
+        private double accumulatedMinscore;
+        private double accumulatedMaxscore;
+
+        public double averageMinscore
+        {
+            get
+            {
+                return accumulatedMinscore * 1.0 / numberOfData;
+            }
+        }
+
+        public double averageMaxscore
+        {
+            get
+            {
+                return accumulatedMaxscore * 1.0 / numberOfData;
+            }
+        }
+
+        public void Add(double top, double bottom, double minscore, double maxscore)
+        {
+            numberOfData++;
+
+            accumulatedTop = accumulatedTop + top;
+            accumulatedBottom = accumulatedBottom + bottom;
+
+            accumulatedMinscore = accumulatedMinscore + minscore;
+            accumulatedMaxscore = accumulatedMaxscore + maxscore;
+        }
+
+        public override void Reset()
+        {
+            numberOfData = 0;
+
+            accumulatedTop = 0;
+            accumulatedBottom = 0;
+
+            accumulatedMinscore = 0;
+            accumulatedMaxscore = 0;
+        }
+
         public override string ToString()
         {
-            return string.Format("N: {0}\tS: {1} \tL: {2:#.###}\tR: {3:#.###}", numberOfData, averageTop, averageBottom, value);
+            return string.Format("N: {0}\tS: {1} \tL: {2:#.###}\tR: {3:#.###}\tP1: {#.###}\tP2: {#.###}", numberOfData, averageTop, averageBottom, value, averageMinscore, averageMaxscore);
         }
     }
 
@@ -98,11 +139,14 @@ namespace Scrabble
 
         public override string ToString()
         {
-            return string.Format("S = {0:#.###}, L = {1:#.###}, B = {2:#.###}, D = {3:#.###}"
+            return string.Format("S = {0:#.###}, L = {1:#.###}, B = {2:#.###}, D = {3:#.###}, R = {4:#.###}, MIN = {5:#.###}, MAX = {6:#.###}"
                 , seesawModel.averageTop
                 , seesawModel.averageBottom
                 , boardGameModel.averageTop
-                , boardGameModel.averageBottom);
+                , boardGameModel.averageBottom
+                , Math.Sqrt(seesawModel.averageTop) / seesawModel.averageBottom
+                , seesawModel.averageMinscore
+                , seesawModel.averageMaxscore);
         }
     }
 }

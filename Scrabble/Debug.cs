@@ -27,7 +27,7 @@ namespace Common
 
     static class Debug
     {
-        private static LogLevel LOG_LEVEL = LogLevel.Default;
+        private static LogLevel LOG_LEVEL = LogLevel.All;
 
         public static void Log(string message, LogLevel level = LogLevel.Assessment)
         {

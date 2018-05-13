@@ -254,7 +254,7 @@ namespace Scrabble
 
         public Board()
         {
-            IEnumerable<string> lines = File.ReadLines(@"..\..\Resources\board.txt");
+            IEnumerable<string> lines = File.ReadLines(@"..\..\Resources\board15.txt");
 
             int row = 0;
             int column = 0;

@@ -1,5 +1,6 @@
 ﻿using Common;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Scrabble
 {
@@ -113,7 +114,7 @@ namespace Scrabble
                     Debug.Log(leader.name + "[Win]" + "\t" + leader.point, LogLevel.Result);
                     Debug.Step(LogLevel.Result);
 
-                    assessment.seesawModel.Add(seesaw, round);
+                    assessment.seesawModel.Add(seesaw, round, playerList.Min(x => x.point), playerList.Max(x => x.point));
                     assessment.boardGameModel.Add(branch * 1.0 / round, round);
                     break;
                 }
